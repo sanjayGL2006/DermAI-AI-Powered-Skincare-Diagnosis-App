@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}DermAI – AI Skin Analysis{% endblock %}
+{% block content %}
+
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">✦ AI-Powered · Dermatologist-Level Insights</div>
+    <h1>Know Your Skin.<br><span class="gradient-text">Fix Every Problem.</span></h1>
+    <p>Upload a photo or use your camera. DermAI detects acne, dark circles, pigmentation and 10+ skin conditions — then gives you a personalized routine, product picks, and diet plan in under 60 seconds.</p>
+    <div class="hero-actions">
+      <a href="/analyze" class="btn-primary">✦ Analyze My Skin Free</a>
+      {% if not user %}<a href="/login" class="btn-outline-hero">Sign In with Google</a>{% endif %}
+    </div>
+    <div class="hero-note">30 free analyses · No credit card required</div>
+    <div class="hero-stats">
+      <div><strong>10+</strong><span>Conditions Detected</span></div>
+      <div class="stat-sep"></div>
+      <div><strong>AI</strong><span>Powered Analysis</span></div>
+      <div class="stat-sep"></div>
+      <div><strong>₹50</strong><span>Premium/Month</span></div>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="scan-card">
+      <div class="scan-ring r1"></div><div class="scan-ring r2"></div><div class="scan-ring r3"></div>
+      <div class="scan-face">👤<div class="scan-beam"></div></div>
+      <div class="scan-tags">
+        <span class="tag green">✓ Hydrated</span>
+        <span class="tag amber">⚠ Oily T-zone</span>
+        <span class="tag cyan">✓ Analyzed</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-inner">
+    <div class="section-head"><span class="label">HOW IT WORKS</span><h2>From selfie to skincare plan in 3 steps</h2></div>
+    <div class="steps">
+      <div class="step"><div class="step-no">01</div><div class="step-ico">📸</div><h3>Upload or Capture</h3><p>Take a selfie or upload a photo. AI detects your face and begins the skin scan instantly.</p></div>
+      <div class="step"><div class="step-no">02</div><div class="step-ico">🤖</div><h3>AI Analyses</h3><p>Identifies conditions like acne, dark spots, dryness, pigmentation, rosacea and more.</p></div>
+      <div class="step"><div class="step-no">03</div><div class="step-ico">💊</div><h3>Get Your Plan</h3><p>Receive personalized products, morning & evening routine, diet tips, and hospital locations.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section dark">
+  <div class="section-inner">
+    <div class="section-head"><span class="label">WHAT WE DETECT</span><h2>10+ skin conditions identified</h2></div>
+    <div class="conditions-grid">
+      {% for e,n,d in [("🟡","Acne & Pimples","Blackheads, whiteheads, cystic"),("🔴","Eczema","Red, itchy inflamed patches"),("🟤","Dark Circles","Under-eye darkening analysis"),("🟫","Hyperpigmentation","Spots, melasma, uneven tone"),("⚪","Psoriasis","Scaly plaque detection"),("🔴","Rosacea","Facial redness & vessels"),("💧","Dry Skin","Flakiness and moisture levels"),("✨","Oily Skin","Sebum and shine analysis"),("🌿","Contact Dermatitis","Rash from irritants"),("☀️","UV Damage","Photo-aging & sun damage")] %}
+      <div class="cond-chip"><span>{{e}}</span><div><strong>{{n}}</strong><small>{{d}}</small></div></div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-inner">
+    <div class="section-head"><span class="label">FEATURES</span><h2>Everything your skin needs</h2></div>
+    <div class="features">
+      <div class="feat feat-wide"><div class="feat-ico">🛡️</div><h3>Bank-Grade Security</h3><p>AES-256 encryption. SHA-256 hashed user IDs. Compliant with India's DPDP Act 2023. No identifiable data stored.</p><div class="feat-tags"><span>E2E Encrypted</span><span>DPDP Compliant</span><span>Zero Data Sharing</span></div></div>
+      <div class="feat"><div class="feat-ico">💬</div><h3>AI Chat</h3><p>Ask anything about your skin — answers based on your personal analysis history.</p></div>
+      <div class="feat"><div class="feat-ico">🛍️</div><h3>Smart Products</h3><p>Genuine picks from Flipkart, Amazon & Nykaa sorted by budget and reviews.</p></div>
+      <div class="feat"><div class="feat-ico">🥗</div><h3>Diet Guide</h3><p>What to eat and avoid — personalized food tips for your specific conditions.</p></div>
+      <div class="feat"><div class="feat-ico">🏥</div><h3>Find Doctors</h3><p>Locate the best-rated dermatologists near you when professional help is needed.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section dark">
+  <div class="section-inner">
+    <div class="section-head"><span class="label">PRICING</span><h2>Simple, honest pricing</h2></div>
+    <div class="pricing">
+      <div class="price-card">
+        <h3>Free</h3><div class="price-amt">₹0</div><p>Forever free to start</p>
+        <ul><li>✓ 30 skin analyses</li><li>✓ Condition detection</li><li>✓ Product suggestions</li><li>✓ Diet tips</li><li class="no">✗ Unlimited analyses</li><li class="no">✗ Full chat history</li></ul>
+        <a href="/analyze" class="btn-secondary">Start Free</a>
+      </div>
+      <div class="price-card featured">
+        <div class="price-badge">MOST POPULAR</div>
+        <h3>Premium</h3><div class="price-amt">₹50<span>/mo</span></div><p>Less than a cup of chai</p>
+        <ul><li>✓ Unlimited analyses</li><li>✓ Full AI chat history</li><li>✓ Priority product matching</li><li>✓ Skin progress tracking</li><li>✓ Dermatologist referrals</li><li>✓ Weekly skin reports</li></ul>
+        <a href="/login" class="btn-primary">Get Premium</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <h2>Start your skin journey today</h2>
+  <p>Join thousands who've discovered their perfect skincare routine with DermAI.</p>
+  <a href="/analyze" class="btn-primary btn-lg">✦ Analyze My Skin — It's Free</a>
+</section>
+
+{% endblock %}

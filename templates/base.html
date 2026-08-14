@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}DermAI – AI Skincare Scan & Recommendations{% endblock %}</title>
+<meta name="description" content="{% block meta_description %}DermAI is an AI-powered skincare diagnosis application that analyzes face photos to detect skin conditions and provide customized routines and product recommendations.{% endblock %}">
+<meta name="keywords" content="{% block meta_keywords %}skincare app, AI skin scan, acne detection, dermatologist recommendations, personalized routine, healthy skin, skin type quiz{% endblock %}">
+<meta name="author" content="DermAI">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="http://localhost:5000/">
+<meta property="og:title" content="{% block og_title %}DermAI – AI Skincare Scan & Recommendations{% endblock %}">
+<meta property="og:description" content="{% block og_description_open %}Scan your face and detect 10+ skin conditions instantly with DermAI. Get personalized product matches and routines.{% endblock %}">
+<meta property="og:image" content="http://localhost:5000/static/images/logo_og.png">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="http://localhost:5000/">
+<meta name="twitter:title" content="{% block twitter_title %}DermAI – AI Skincare Scan & Recommendations{% endblock %}">
+<meta name="twitter:description" content="{% block twitter_description %}Scan your face and detect skin conditions instantly. Receive personalized morning & evening routines.{% endblock %}">
+<meta name="twitter:image" content="http://localhost:5000/static/images/logo_og.png">
+
+<!-- JSON-LD Structured Data Schema -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "DermAI",
+  "url": "http://localhost:5000/",
+  "description": "AI-Powered Skincare Diagnosis App. Detect skin conditions, get personalized routines, and find the best products.",
+  "applicationCategory": "HealthApplication",
+  "operatingSystem": "All",
+  "offers": {
+    "@type": "Offer",
+    "price": "50.00",
+    "priceCurrency": "INR",
+    "eligibleRegion": "IN"
+  }
+}
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+<!-- Firebase Web SDK & Analytics -->
+<script type="module" src="/static/js/firebase-init.js"></script>
+{% block extra_head %}{% endblock %}
+</head>
+<body>
+<nav class="navbar">
+  <div class="nav-container">
+    <a href="/" class="nav-logo"><span class="logo-icon">✦</span>Derm<span class="logo-accent">AI</span></a>
+    <div class="nav-links">
+      <a href="/analyze" class="nav-link">Analyze</a>
+      {% if user %}
+        <a href="/profile" class="nav-link">My Profile</a>
+        <div class="nav-user">
+          {% if user.avatar %}<img src="{{ user.avatar }}" class="nav-avatar">{% endif %}
+          <span>{{ user.name }}</span>
+          <a href="/logout" class="nav-logout">Logout</a>
+        </div>
+      {% else %}
+        <a href="/login" class="btn-nav">Sign In</a>
+      {% endif %}
+    </div>
+    <button class="hamburger" onclick="this.nextElementSibling.classList.toggle('open')">☰</button>
+    <div class="mobile-menu">
+      <a href="/analyze">Analyze</a>
+      {% if user %}<a href="/profile">Profile</a><a href="/logout">Logout</a>
+      {% else %}<a href="/login">Sign In</a>{% endif %}
+    </div>
+  </div>
+</nav>
+
+<main>{% block content %}{% endblock %}</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div>
+      <div class="footer-logo"><span class="logo-icon">✦</span>Derm<span class="logo-accent">AI</span></div>
+      <p>AI-powered skincare diagnosis for healthier, happier skin.</p>
+    </div>
+    <div class="footer-links">
+      <div><h4>Product</h4><a href="/analyze">Analyze</a><a href="/profile">Dashboard</a></div>
+      <div><h4>Legal</h4><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Disclaimer</a></div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>⚕️ <strong>Medical Disclaimer:</strong> DermAI is for informational purposes only. Always consult a licensed dermatologist for medical diagnosis and treatment.</p>
+    <p>© 2024 DermAI · Protected under India's Digital Personal Data Protection Act 2023 · End-to-End Encrypted</p>
+  </div>
+</footer>
+{% block scripts %}{% endblock %}
+</body>
+</html>

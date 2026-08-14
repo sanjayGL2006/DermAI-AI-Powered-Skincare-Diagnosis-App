@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}Skin Analysis Results – DermAI{% endblock %}
+{% block content %}
+<div class="results-wrap">
+  <div class="results-head">
+    <h1>Your Skin Analysis</h1>
+    <p>ID: <code>{{ analysis.id }}</code> · {{ analysis.created_at[:10] }}</p>
+  </div>
+
+  <!-- SCORE -->
+  <div class="score-card">
+    <div class="score-circle-wrap">
+      <div class="score-circle" style="--pct:{{ analysis.overall_score }}">
+        <span class="score-num">{{ analysis.overall_score }}</span>
+        <span class="score-lbl">/ 100</span>
+      </div>
+    </div>
+    <div class="score-info">
+      <h3>Skin Health Score</h3>
+      {% if analysis.overall_score >= 80 %}<p class="score-msg good">✓ Excellent! Keep maintaining your routine.</p>
+      {% elif analysis.overall_score >= 60 %}<p class="score-msg ok">⚠ Good foundation with room to improve.</p>
+      {% elif analysis.overall_score >= 40 %}<p class="score-msg warn">⚠ Your skin needs attention. Follow the plan below.</p>
+      {% else %}<p class="score-msg bad">🔴 Significant concerns detected. See a dermatologist.</p>{% endif %}
+      <div class="skin-type-pill">Skin Type: <strong>{{ analysis.skin_type }}</strong></div>
+      {% if analysis.see_doctor %}
+      <div class="doc-alert">⚠️ <strong>Doctor Recommended</strong><p>{{ analysis.doctor_reason }}</p><a href="https://www.google.com/maps/search/dermatologist+near+me" target="_blank" class="btn-sm btn-primary">Find Dermatologist Near Me</a></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- CONDITIONS -->
+  <div class="res-section">
+    <h2>Conditions Detected</h2>
+    {% if analysis.conditions %}
+    <div class="conds">
+      {% for c in analysis.conditions %}
+      <div class="cond-card">
+        <div class="cond-top"><h4>{{ c.name }}</h4><span class="sev sev-{{c.severity}}">{{ c.severity }}</span></div>
+        <p class="cond-area">Area: {{ c.affected_area }}</p>
+        <div class="conf-bar"><div class="conf-fill" style="width:{{c.confidence}}%"></div></div>
+        <span class="conf-txt">{{ c.confidence }}% confidence</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}<p>No significant conditions detected. Your skin looks great! 🎉</p>{% endif %}
+  </div>
+
+  <!-- PRODUCTS -->
+  <div class="res-section">
+    <h2>Recommended Products</h2>
+    <div class="bfilter">
+      <button class="fbtn active" onclick="filterBudget('all',this)">All</button>
+      <button class="fbtn" onclick="filterBudget('budget',this)">Budget</button>
+      <button class="fbtn" onclick="filterBudget('mid_range',this)">Mid-Range</button>
+      <button class="fbtn" onclick="filterBudget('premium',this)">Premium</button>
+    </div>
+    <div class="prod-grid">
+      {% for bkey, cats in products.items() %}
+      <div class="prod-group" data-budget="{{ bkey }}">
+        <h4 class="prod-budget-label">{{ bkey.replace('_',' ').title() }}</h4>
+        {% for cat, items in cats.items() %}
+        <div class="prod-cat">
+          <h5>{{ cat.replace('_',' ').title() }}</h5>
+          {% for item in items %}
+          <div class="prod-item">
+            <p>{{ item }}</p>
+            <div class="prod-links">
+              <a href="https://www.flipkart.com/search?q={{ item.split('(')[0].strip() }}" target="_blank">Flipkart ↗</a>
+              <a href="https://www.amazon.in/s?k={{ item.split('(')[0].strip() }}" target="_blank">Amazon ↗</a>
+              <a href="https://www.nykaa.com/search/result/?q={{ item.split('(')[0].strip() }}" target="_blank">Nykaa ↗</a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ROUTINE -->
+  <div class="res-section">
+    <h2>Your Daily Routine</h2>
+    <div class="routine-grid">
+      <div class="routine-card">
+        <h3>🌅 Morning Routine</h3>
+        <ol>{% for s in analysis.recommendations.morning_routine %}<li>{{ s }}</li>{% endfor %}</ol>
+      </div>
+      <div class="routine-card">
+        <h3>🌙 Evening Routine</h3>
+        <ol>{% for s in analysis.recommendations.evening_routine %}<li>{{ s }}</li>{% endfor %}</ol>
+      </div>
+    </div>
+    <div class="meds-grid">
+      <div class="med-card"><h4>🧴 Recommended Creams</h4><ul>{% for c in analysis.recommendations.creams %}<li>{{ c }}</li>{% endfor %}</ul></div>
+      <div class="med-card"><h4>🧼 Recommended Soaps</h4><ul>{% for s in analysis.recommendations.soaps %}<li>{{ s }}</li>{% endfor %}</ul></div>
+      <div class="med-card"><h4>💊 Tablets / Supplements</h4><ul>{% for t in analysis.recommendations.tablets %}<li>{{ t }}</li>{% endfor %}</ul></div>
+      <div class="med-card"><h4>✨ Recommended Serums</h4><ul>{% for s in analysis.recommendations.serums %}<li>{{ s }}</li>{% endfor %}</ul></div>
+    </div>
+  </div>
+
+  <!-- DIET -->
+  <div class="res-section">
+    <h2>Diet & Nutrition Guide</h2>
+    <div class="diet-grid">
+      <div class="diet-card eat"><h3>✓ Foods to Eat</h3><ul>{% for f in analysis.diet_tips.eat %}<li>{{ f }}</li>{% endfor %}</ul></div>
+      <div class="diet-card avoid"><h3>✗ Foods to Avoid</h3><ul>{% for f in analysis.diet_tips.avoid %}<li>{{ f }}</li>{% endfor %}</ul></div>
+    </div>
+  </div>
+
+  <!-- LIFESTYLE -->
+  <div class="res-section">
+    <h2>Lifestyle Tips</h2>
+    <div class="tips-grid">{% for t in analysis.lifestyle_tips %}<div class="tip">✨ {{ t }}</div>{% endfor %}</div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="res-actions">
+    <a href="/chat/{{ analysis.id }}" class="btn-primary">💬 Chat with DermAI</a>
+    <a href="/analyze" class="btn-secondary">📷 Analyze Again</a>
+    <a href="/profile" class="btn-outline">📊 View History</a>
+  </div>
+
+  {% if remaining <= 1 and remaining >= 0 %}
+  <div class="upgrade-bar">
+    <span>⚠ Only {{ remaining }} free analysis left</span>
+    <button onclick="alert('Premium coming soon! ₹50/month for unlimited analyses.')" class="btn-primary btn-sm">Upgrade — ₹50/month</button>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+function filterBudget(b, btn) {
+  document.querySelectorAll('.fbtn').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.prod-group').forEach(g=>{
+    g.style.display = (b==='all'||g.dataset.budget===b) ? 'block' : 'none';
+  });
+}
+</script>
+{% endblock %}

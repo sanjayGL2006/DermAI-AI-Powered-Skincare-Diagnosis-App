@@ -1,0 +1,12 @@
+.env
+skincare.db
+data/
+.vscode/
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+serviceAccountKey.json
+*serviceAccount*.json
+venv/
+.venv/

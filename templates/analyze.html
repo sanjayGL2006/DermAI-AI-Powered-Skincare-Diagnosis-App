@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% block title %}Analyze Your Skin – DermAI{% endblock %}
+{% block content %}
+<div class="page-hero">
+  <span class="label">SKIN ANALYSIS</span>
+  <h1>Let's analyze your skin</h1>
+  <p>Upload a clear, well-lit selfie. No filters or makeup for best results.</p>
+  {% if is_premium %}
+    <span class="badge premium">✦ Premium — Unlimited Analyses</span>
+  {% else %}
+    <span class="badge free">{{ free_limit - count_used }} free analyses remaining</span>
+  {% endif %}
+</div>
+
+{% if not can_analyze %}
+<div class="limit-box">
+  <div class="limit-ico">🔒</div>
+  <h2>Free Limit Reached</h2>
+  <p>You've used all {{ free_limit }} free analyses. Upgrade to Premium for just <strong>₹50/month</strong>.</p>
+  <button class="btn-primary" onclick="alert('Premium coming soon! Contact support@dermai.in')">Upgrade — ₹50/month</button>
+  <p><small>Your ID: <code>{{ user_id }}</code></small></p>
+</div>
+{% else %}
+<div class="analyze-wrap">
+
+  <!-- STEP 1 -->
+  <div id="step1" class="an-step">
+    <div class="an-step-title"><span class="step-n">1</span> Upload or Capture Photo</div>
+    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+      <div id="ph"><div class="up-ico">📷</div><h3>Click to upload a photo</h3><p>or drag & drop here</p><small>JPG, PNG · Max 5MB</small></div>
+      <img id="preview" style="display:none" alt="Preview">
+      <div id="scanOv" style="display:none" class="scan-ov"><div class="scan-line"></div><span>Detecting face…</span></div>
+    </div>
+    <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFile(event)">
+
+    <div class="up-or"><span>or</span></div>
+    <div class="cam-row">
+      <video id="vid" style="display:none" autoplay playsinline class="cam-vid"></video>
+      <canvas id="cvs" style="display:none"></canvas>
+      <button class="btn-secondary" id="camBtn" onclick="startCam()">📷 Use Camera</button>
+      <button class="btn-primary" id="capBtn" onclick="capture()" style="display:none">📸 Capture</button>
+      <button class="btn-outline" id="stopBtn" onclick="stopCam()" style="display:none">✕ Stop</button>
+    </div>
+    <div id="faceStatus" style="display:none" class="face-status"></div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div id="step2" style="display:none" class="an-step">
+    <div class="an-step-title"><span class="step-n">2</span> Tell us about your skin</div>
+    <div class="quiz">
+
+      <div class="q"><label>Skin type?</label>
+        <div class="opts">
+          {% for v in ["Normal","Dry","Oily","Combination","Sensitive","Not Sure"] %}
+          <button class="opt" data-k="skin_type" data-v="{{v}}" onclick="pick(this)">{{v}}</button>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="q"><label>Main concerns? (select all)</label>
+        <div class="opts">
+          {% for v in ["Acne","Dark Circles","Dark Spots","Dryness","Oiliness","Redness","Anti-aging","Uneven Tone"] %}
+          <button class="opt multi" data-k="concerns" data-v="{{v}}" onclick="multi(this)">{{v}}</button>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="q"><label>Daily water intake?</label>
+        <div class="opts">
+          {% for v in ["Less than 1L","1-2 Litres","2-3 Litres","3+ Litres"] %}
+          <button class="opt" data-k="water" data-v="{{v}}" onclick="pick(this)">{{v}}</button>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="q"><label>Average sleep?</label>
+        <div class="opts">
+          {% for v in ["Less than 5hrs","5-6hrs","7-8hrs","8+hrs"] %}
+          <button class="opt" data-k="sleep" data-v="{{v}}" onclick="pick(this)">{{v}}</button>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="q"><label>Use sunscreen daily?</label>
+        <div class="opts">
+          {% for v in ["Yes always","Sometimes","Rarely","Never"] %}
+          <button class="opt" data-k="sunscreen" data-v="{{v}}" onclick="pick(this)">{{v}}</button>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="q"><label>Budget for skincare?</label>
+        <div class="opts">
+          <button class="opt" data-k="budget" data-v="budget" onclick="pick(this)">Budget (under ₹500)</button>
+          <button class="opt" data-k="budget" data-v="mid_range" onclick="pick(this)">Mid (₹500–1500)</button>
+          <button class="opt" data-k="budget" data-v="premium" onclick="pick(this)">Premium (₹1500+)</button>
+        </div>
+      </div>
+
+    </div>
+    <div class="an-actions">
+      <button class="btn-outline" onclick="back()">← Back</button>
+      <button class="btn-primary" id="analyzeBtn" onclick="analyze()">✦ Analyze My Skin</button>
+    </div>
+  </div>
+
+  <!-- LOADER -->
+  <div id="loader" style="display:none" class="loader-wrap">
+    <div class="loader-ring"></div>
+    <h2>Analyzing your skin…</h2>
+    <div class="loader-steps">
+      <div id="ls1" class="ls active">✓ Face detected</div>
+      <div id="ls2" class="ls">⟳ Analyzing conditions</div>
+      <div id="ls3" class="ls">◯ Generating routine</div>
+      <div id="ls4" class="ls">◯ Finding best products</div>
+    </div>
+  </div>
+
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+let img = null, stream = null;
+const ans = {}, multi_ans = {};
+
+function handleFile(e) {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => { img = ev.target.result; showPreview(img); };
+  r.readAsDataURL(f);
+}
+function showPreview(src) {
+  document.getElementById('preview').src = src;
+  document.getElementById('preview').style.display = 'block';
+  document.getElementById('ph').style.display = 'none';
+  document.getElementById('scanOv').style.display = 'flex';
+  setTimeout(() => {
+    document.getElementById('scanOv').style.display = 'none';
+    const fs = document.getElementById('faceStatus');
+    fs.style.display = 'block'; fs.className = 'face-status ok';
+    fs.textContent = '✓ Face detected — proceed to questionnaire';
+    setTimeout(() => { document.getElementById('step1').style.display='none'; document.getElementById('step2').style.display='block'; window.scrollTo(0,0); }, 600);
+  }, 2000);
+}
+async function startCam() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}});
+    document.getElementById('vid').srcObject = stream;
+    document.getElementById('vid').style.display = 'block';
+    document.getElementById('camBtn').style.display = 'none';
+    document.getElementById('capBtn').style.display = 'inline-flex';
+    document.getElementById('stopBtn').style.display = 'inline-flex';
+  } catch { alert('Camera access denied. Please upload a photo instead.'); }
+}
+function capture() {
+  const v = document.getElementById('vid'), c = document.getElementById('cvs');
+  c.width = v.videoWidth; c.height = v.videoHeight;
+  c.getContext('2d').drawImage(v,0,0);
+  img = c.toDataURL('image/jpeg', 0.9);
+  stopCam(); showPreview(img);
+}
+function stopCam() {
+  if (stream) { stream.getTracks().forEach(t=>t.stop()); stream=null; }
+  document.getElementById('vid').style.display='none';
+  document.getElementById('capBtn').style.display='none';
+  document.getElementById('stopBtn').style.display='none';
+  document.getElementById('camBtn').style.display='inline-flex';
+}
+// Drag-drop
+const zone = document.getElementById('uploadZone');
+if(zone) {
+  zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('drag');});
+  zone.addEventListener('dragleave',()=>zone.classList.remove('drag'));
+  zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('drag');const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/')){const r=new FileReader();r.onload=ev=>{img=ev.target.result;showPreview(img);};r.readAsDataURL(f);}});
+}
+function pick(btn) {
+  const k=btn.dataset.k;
+  document.querySelectorAll(`[data-k="${k}"]:not(.multi)`).forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel'); ans[k]=btn.dataset.v;
+}
+function multi(btn) {
+  const k=btn.dataset.k, v=btn.dataset.v;
+  btn.classList.toggle('sel');
+  if (!multi_ans[k]) multi_ans[k]=[];
+  if (btn.classList.contains('sel')) { if(!multi_ans[k].includes(v)) multi_ans[k].push(v); }
+  else multi_ans[k]=multi_ans[k].filter(x=>x!==v);
+  ans[k]=multi_ans[k];
+}
+function back() { document.getElementById('step2').style.display='none'; document.getElementById('step1').style.display='block'; }
+async function analyze() {
+  if (!img) { alert('Please upload or capture a photo first.'); return; }
+  document.getElementById('step2').style.display='none';
+  document.getElementById('loader').style.display='flex';
+  ['ls2','ls3','ls4'].forEach((id,i)=>setTimeout(()=>document.getElementById(id).classList.add('active'),(i+1)*1500));
+  try {
+    const r = await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:img,skin_type:ans.skin_type||'Unknown',answers:ans})});
+    const d = await r.json();
+    if (d.success) { window.location.href='/results/'+d.analysis_id; }
+    else if (d.error==='free_limit_reached') { document.getElementById('loader').style.display='none'; alert(d.message); }
+    else throw new Error(d.error||'Analysis failed');
+  } catch(e) {
+    document.getElementById('loader').style.display='none';
+    document.getElementById('step2').style.display='block';
+    alert('Error: '+e.message+'\n\nMake sure GEMINI_API_KEY is set in .env');
+  }
+}
+</script>
+{% endblock %}

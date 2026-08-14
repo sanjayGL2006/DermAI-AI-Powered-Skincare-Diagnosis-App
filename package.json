@@ -1,0 +1,21 @@
+{
+  "name": "dermai-skincare-app",
+  "version": "1.0.0",
+  "description": "AI-Powered Skincare Diagnosis App with Firebase Analytics",
+  "main": "static/js/firebase-init.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "firebase": "^10.12.0"
+  },
+  "keywords": [
+    "skincare",
+    "ai",
+    "firebase",
+    "analytics"
+  ],
+  "author": "DermAI",
+  "license": "ISC"
+}

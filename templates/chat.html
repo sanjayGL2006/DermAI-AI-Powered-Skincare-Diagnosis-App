@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}AI Skin Chat – DermAI{% endblock %}
+{% block content %}
+<div class="chat-wrap">
+  <div class="chat-sidebar">
+    <h3>Your Analysis</h3>
+    <p><strong>Skin Type:</strong> {{ skin_type }}</p>
+    <h4>Conditions:</h4>
+    {% for c in conditions %}
+    <div class="chat-cond"><span class="sev sev-{{c.severity}}">{{c.severity}}</span> {{c.name}}</div>
+    {% endfor %}
+    <div class="chat-tips">
+      <p>💡 Ask me about:</p>
+      <button onclick="quickAsk('What products should I use for my skin type?')">Products for my skin</button>
+      <button onclick="quickAsk('What morning routine should I follow?')">Morning routine</button>
+      <button onclick="quickAsk('What foods should I eat for better skin?')">Diet tips</button>
+      <button onclick="quickAsk('How long will it take to see results?')">Timeline for results</button>
+      <button onclick="quickAsk('Find dermatologist near me')">Find a doctor</button>
+    </div>
+    <a href="/results/{{ analysis_id }}" class="btn-outline btn-sm">← Back to Results</a>
+  </div>
+
+  <div class="chat-main">
+    <div class="chat-header">
+      <div class="chat-bot-info"><div class="bot-ava">🤖</div><div><strong>DermAI Assistant</strong><span>Powered by Gemini AI</span></div></div>
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+      <div class="msg bot">
+        <div class="msg-ava">🤖</div>
+        <div class="msg-bubble">
+          Hi! I'm DermAI, your personal skincare assistant. I've analyzed your skin and I'm ready to answer any questions about your conditions, recommended products, routines, or diet tips. What would you like to know?
+        </div>
+      </div>
+      {% for c in chat_history %}
+      <div class="msg {{ c.role }}">
+        <div class="msg-ava">{% if c.role=='assistant' %}🤖{% else %}👤{% endif %}</div>
+        <div class="msg-bubble">{{ c.message }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="chat-input-wrap">
+      <textarea id="chatInput" class="chat-input" placeholder="Ask about your skin, products, routines, diet..." rows="1" onkeydown="handleKey(event)"></textarea>
+      <button class="chat-send" id="sendBtn" onclick="sendMessage()">
+        <span id="sendIco">➤</span>
+        <span id="sendLoad" style="display:none">⟳</span>
+      </button>
+    </div>
+    <p class="chat-disclaimer">⚕️ AI advice only. Always consult a dermatologist for medical diagnosis.</p>
+  </div>
+</div>
+
+<script>
+const AID = "{{ analysis_id }}";
+
+function quickAsk(q) {
+  document.getElementById('chatInput').value = q;
+  sendMessage();
+}
+
+function handleKey(e) {
+  if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  appendMsg('user', msg);
+  input.value = '';
+  input.style.height = 'auto';
+
+  document.getElementById('sendBtn').disabled = true;
+  document.getElementById('sendIco').style.display = 'none';
+  document.getElementById('sendLoad').style.display = 'inline';
+
+  const typing = appendTyping();
+
+  try {
+    const r = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({message: msg, analysis_id: AID})
+    });
+    const d = await r.json();
+    typing.remove();
+    appendMsg('assistant', d.response || d.error || 'Sorry, something went wrong.');
+  } catch(e) {
+    typing.remove();
+    appendMsg('assistant', 'Connection error. Please try again.');
+  } finally {
+    document.getElementById('sendBtn').disabled = false;
+    document.getElementById('sendIco').style.display = 'inline';
+    document.getElementById('sendLoad').style.display = 'none';
+  }
+}
+
+function appendMsg(role, text) {
+  const box = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  div.innerHTML = `<div class="msg-ava">${role==='assistant'?'🤖':'👤'}</div><div class="msg-bubble">${text.replace(/\n/g,'<br>')}</div>`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+  return div;
+}
+
+function appendTyping() {
+  const box = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'msg assistant typing';
+  div.innerHTML = '<div class="msg-ava">🤖</div><div class="msg-bubble"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>';
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+  return div;
+}
+
+// Auto-resize textarea
+document.getElementById('chatInput').addEventListener('input', function(){
+  this.style.height='auto'; this.style.height=Math.min(this.scrollHeight,120)+'px';
+});
+</script>
+{% endblock %}

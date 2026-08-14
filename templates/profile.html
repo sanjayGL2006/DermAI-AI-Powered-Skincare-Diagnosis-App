@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}My Profile – DermAI{% endblock %}
+{% block content %}
+<div class="profile-wrap">
+  <div class="profile-header">
+    {% if user.avatar %}<img src="{{ user.avatar }}" class="profile-avatar">{% else %}<div class="profile-avatar-placeholder">👤</div>{% endif %}
+    <div class="profile-info">
+      <h1>{{ user.name }}</h1>
+      <p>{{ user.email or 'Guest Account' }}</p>
+      <p>User ID: <code>{{ user.id }}</code></p>
+      <div class="profile-badges">
+        {% if user.is_premium %}
+          <span class="badge premium">✦ Premium Member</span>
+        {% else %}
+          <span class="badge free">Free Plan · {{ free_limit - user.analysis_count }} analyses remaining</span>
+          <button class="btn-primary btn-sm" onclick="alert('Premium coming soon! ₹50/month')">Upgrade — ₹50/month</button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-stats">
+    <div class="pstat"><strong>{{ history|length }}</strong><span>Total Analyses</span></div>
+    <div class="pstat"><strong>{{ user.analysis_count }}</strong><span>Analyses Used</span></div>
+    <div class="pstat"><strong>{% if history %}{{ history[0].overall_score }}{% else %}—{% endif %}</strong><span>Latest Score</span></div>
+    <div class="pstat"><strong>{% if user.is_premium %}∞{% else %}{{ [free_limit - user.analysis_count, 0]|max }}{% endif %}</strong><span>Remaining</span></div>
+  </div>
+
+  <div class="profile-history">
+    <div class="history-header">
+      <h2>Analysis History</h2>
+      <a href="/analyze" class="btn-primary btn-sm">+ New Analysis</a>
+    </div>
+
+    {% if history %}
+      <div class="history-list">
+        {% for a in history %}
+        <div class="history-card">
+          <div class="hc-left">
+            <div class="hc-score {% if a.overall_score >= 70 %}good{% elif a.overall_score >= 50 %}ok{% else %}bad{% endif %}">
+              {{ a.overall_score }}
+            </div>
+            <div class="hc-info">
+              <h4>{{ a.skin_type }} Skin</h4>
+              <p>{{ a.created_at[:10] }} · ID: {{ a.id }}</p>
+              <div class="hc-conds">
+                {% for c in a.conditions[:3] %}
+                <span class="mini-cond">{{ c.name }}</span>
+                {% endfor %}
+                {% if a.conditions|length > 3 %}<span class="mini-cond">+{{ a.conditions|length - 3 }} more</span>{% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="hc-actions">
+            {% if a.see_doctor %}<span class="doc-warn">⚠ See Doctor</span>{% endif %}
+            <a href="/results/{{ a.id }}" class="btn-outline btn-sm">View Results</a>
+            <a href="/chat/{{ a.id }}" class="btn-secondary btn-sm">Chat</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="no-history">
+        <div class="no-history-ico">📷</div>
+        <h3>No analyses yet</h3>
+        <p>Start your first skin analysis to see your results here.</p>
+        <a href="/analyze" class="btn-primary">Analyze My Skin</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="security-section">
+    <h2>🔒 Your Data Security</h2>
+    <div class="security-grid">
+      <div class="sec-item"><span>🔐</span><div><strong>AES-256 Encrypted</strong><p>All your data is encrypted at rest and in transit.</p></div></div>
+      <div class="sec-item"><span>🆔</span><div><strong>Hashed Identity</strong><p>Your ID is a SHA-256 hash — no one can reverse it to identify you.</p></div></div>
+      <div class="sec-item"><span>📋</span><div><strong>DPDP Compliant</strong><p>Protected under India's Digital Personal Data Protection Act 2023.</p></div></div>
+      <div class="sec-item"><span>🚫</span><div><strong>No Data Selling</strong><p>We never sell, share, or monetize your personal data.</p></div></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
