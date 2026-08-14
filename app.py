@@ -8,7 +8,7 @@ from flask import (Flask, render_template, request, jsonify,
 from werkzeug.security import generate_password_hash, check_password_hash
 # pyrefly: ignore [missing-import]
 from flask_dance.contrib.google import make_google_blueprint, google
-from database import init_db, get_db
+from database import init_db, get_db, close_db
 from skin_data import SKIN_CONDITIONS, PRODUCTS_DB, DIET_TIPS
 # pyrefly: ignore [missing-import]
 from dotenv import load_dotenv
@@ -16,6 +16,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
+app.teardown_appcontext(close_db)
+
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', os.urandom(24))
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'   # dev only – remove in prod
 

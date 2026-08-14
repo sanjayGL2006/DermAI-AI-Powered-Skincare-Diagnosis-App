@@ -1,13 +1,26 @@
 import os
 import sqlite3
+from flask import g, has_app_context
 
 DATABASE = 'data/skincare.db'
 
 def get_db():
     os.makedirs(os.path.dirname(DATABASE), exist_ok=True)
-    db = sqlite3.connect(DATABASE)
-    db.row_factory = sqlite3.Row
-    return db
+    if has_app_context():
+        if 'db' not in g:
+            g.db = sqlite3.connect(DATABASE)
+            g.db.row_factory = sqlite3.Row
+        return g.db
+    else:
+        db = sqlite3.connect(DATABASE)
+        db.row_factory = sqlite3.Row
+        return db
+
+def close_db(e=None):
+    if has_app_context():
+        db = g.pop('db', None)
+        if db is not None:
+            db.close()
 
 def init_db():
     db = get_db()
@@ -60,5 +73,7 @@ def init_db():
         );
     ''')
     db.commit()
-    db.close()
+    if not has_app_context():
+        db.close()
     print("Database initialized successfully.")
+
