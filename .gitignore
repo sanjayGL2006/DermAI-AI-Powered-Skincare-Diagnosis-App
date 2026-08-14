@@ -10,3 +10,4 @@ serviceAccountKey.json
 *serviceAccount*.json
 venv/
 .venv/
+github.txt
