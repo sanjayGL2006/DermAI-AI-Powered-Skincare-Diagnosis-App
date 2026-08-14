@@ -278,9 +278,10 @@ def logout():
 def guest_login():
     uid = gen_user_id()
     db  = get_db()
+    guest_username = f"guest_{uid.split('-')[-1].lower()}"
     db.execute(
-        'INSERT OR IGNORE INTO users (id,name,email,created_at,analysis_count) VALUES (?,?,?,?,0)',
-        (uid, 'Guest', '', datetime.now().isoformat())
+        'INSERT INTO users (id, username, name, email, created_at, analysis_count) VALUES (?, ?, ?, NULL, ?, 0)',
+        (uid, guest_username, 'Guest', datetime.now().isoformat())
     )
     db.commit()
     session['user_id']   = uid
