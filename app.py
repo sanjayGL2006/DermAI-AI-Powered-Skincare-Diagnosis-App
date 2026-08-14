@@ -3,7 +3,7 @@ from datetime import datetime
 from functools import wraps
 # pyrefly: ignore [missing-import]
 from flask import (Flask, render_template, request, jsonify,
-                   session, redirect, url_for, flash)
+                   session, redirect, url_for, flash, send_from_directory)
 # pyrefly: ignore [missing-import]
 from werkzeug.security import generate_password_hash, check_password_hash
 # pyrefly: ignore [missing-import]
@@ -289,6 +289,14 @@ def guest_login():
 # ────────────────────────────────────────────────────────────
 # MAIN ROUTES
 # ────────────────────────────────────────────────────────────
+
+@app.route('/sw.js')
+def service_worker():
+    return send_from_directory('.', 'sw.js', mimetype='application/javascript')
+
+@app.route('/favicon.ico')
+def favicon():
+    return '', 204
 
 @app.route('/')
 def index():
