@@ -124,15 +124,39 @@ skincare-app/
 6. User can chat with DermAI for follow-up advice
 7. All history saved in profile
 
----
+## 🚀 Deploying to Vercel
 
-## 📌 API Keys Needed
-| Service | URL | Cost |
-|---------|-----|------|
-| Gemini API | aistudio.google.com | Free / Pay per use |
-| Google OAuth | console.cloud.google.com | Free |
+This repository is pre-configured for instant deployment on **Vercel** serverless platform!
+
+### 1. Push to GitHub
+Ensure your latest changes are pushed to your GitHub repository:
+```bash
+git add .
+git commit -m "Configure for Vercel deployment"
+git push origin main
+```
+
+### 2. Import into Vercel
+1. Go to [Vercel Dashboard](https://vercel.com/new).
+2. Import your `skincare-app` GitHub repository.
+3. Keep default settings (**Framework Preset**: Other / None).
+
+### 3. Set Environment Variables on Vercel
+In **Vercel Project Settings → Environment Variables**, add:
+
+| Key | Example / Value |
+|---|---|
+| `GEMINI_API_KEY` | Your Gemini API Key from Google AI Studio |
+| `FLASK_SECRET_KEY` | Any random secure string |
+| `GOOGLE_CLIENT_ID` | Google OAuth Client ID |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret |
+
+### 4. Update Google OAuth Redirect URI
+In [Google Cloud Console Credentials](https://console.cloud.google.com/apis/credentials):
+- Add authorized redirect URI: `https://<your-vercel-app>.vercel.app/login/google/authorized`
 
 ---
 
 ## ⚕️ Disclaimer
 DermAI is for informational purposes only. Always consult a licensed dermatologist for medical diagnosis and treatment.
+

@@ -1,0 +1,104 @@
+# DERMAI - APPLICATION KNOWLEDGE, PRIVACY POLICY & SECURITY PROTECTION SPECIFICATION
+
+**Application Name:** DermAI – AI-Powered Skincare Diagnosis & Personalized Treatment App  
+**Author & Developer:** Sanjay GL  
+**Slogan:** Education: The Passport to Your Future  
+**Official Creation & Effective Date:** August 18, 2026 (18-08-2026)  
+**Document Classification:** Confidential & Protected Intellectual Property  
+
+---
+
+## SECTION 1: A-TO-Z APPLICATION KNOWLEDGE & INFORMATION
+
+### 1.1 Application Overview & Purpose
+DermAI is an end-to-end AI-powered skincare application designed and engineered by **Sanjay GL**. It empowers users to analyze facial skin conditions using state-of-the-art computer vision and multimodal AI technology (Gemini 1.5 Flash). Users receive instant, highly personalized skin diagnostic reports, customized morning/evening skincare routines, dermatological recommendations, dietary guidelines, and product recommendations tailored to Indian and international markets.
+
+### 1.2 System Architecture & Tech Stack
+- **Backend Architecture:** Python Flask framework (`app.py`), modular microservices structure, SQLite relational database layer (`database.py`), Firebase Admin SDK integration (`serviceAccountKey.json`), Google OAuth 2.0 authentication (`flask_dance`).
+- **AI Processing Engine:** Google Gemini 1.5 Flash multimodal vision model (`gemini-1.5-flash`) for facial scanning, condition classification, confidence scoring, and intelligent chatbot consultation (`DermAI Assistant`).
+- **Frontend Architecture:** Modern HTML5, custom CSS design system with CSS variables, vanilla JavaScript, Progressive Web App (PWA) capability with Service Worker (`sw.js`).
+- **Database Schema:**
+  - `users` table: User ID (`SKN-...`), email, name, avatar, premium status (`is_premium`), analysis counter (`analysis_count`), creation timestamp.
+  - `analyses` table: Analysis ID (`ANL-...`), user ID link, image hash / reference, skin type, detected conditions (JSON array), overall health score (0-100), morning/evening routines, product suggestions, dietary tips, doctor consultation recommendation flag.
+  - `chats` table: Session consultation log linked to specific diagnostic reports for AI follow-up advice.
+
+### 1.3 Key Features & Functional Workflows
+1. **Skin Assessment Quiz & Photo Analysis:** Interactive questionnaire capturing skin feel, sensitivity, oiliness, acne severity, and environmental factors, combined with real-time camera capture or image upload.
+2. **AI Diagnostic Detection:** Automated identification of 10+ skin conditions including Acne Vulgaris, Hyperpigmentation, Dark Circles, Enlarged Pores, Rosacea, Dehydration, Fine Lines, and Eczema.
+3. **Routine Generator:** Dual morning (AM) and evening (PM) routines detailing step-by-step application order (Cleanser -> Serum -> Moisturizer -> Broad-spectrum SPF 50+ Sunscreen).
+4. **Curated Product Engine:** Indian market pricing (₹ INR), direct availability links (Amazon India, Nykaa, Flipkart), active ingredients matching (Niacinamide, Salicylic Acid, Vitamin C, Hyaluronic Acid).
+5. **DermAI AI Chatbot:** Context-aware interactive assistant allowing users to ask follow-up questions regarding their specific scan result.
+6. **User Dashboard & History:** Track skin progress over time with complete diagnostic history, score tracking, and premium upgrade capability.
+
+---
+
+## SECTION 2: FULL DETAILED PRIVACY POLICY
+
+**Effective Date:** August 18, 2026  
+**Created By:** Sanjay GL  
+
+### 2.1 Commitment to Privacy
+Your privacy is paramount to Sanjay GL and the DermAI engineering team. This Privacy Policy details how personal information and biometric skin image data are collected, processed, and safeguarded under India's **Digital Personal Data Protection (DPDP) Act 2023**, global **GDPR** standards, and international medical privacy frameworks.
+
+### 2.2 Facial Image Data & 5-Hour 1-Minute Automatic Purge Policy
+- **Zero Permanent Image Storage:** Facial photographs uploaded or captured via DermAI are evaluated **ephemerally in volatile memory (RAM)** during the active AI analysis request. Raw facial images are **NEVER saved to permanent disk storage, external cloud buckets, or public databases**.
+- **5-Hour 1-Minute Automatic Purge Guarantee:** In the event any temporary image buffer, cache file, or session asset is generated, an automated system protocol continuously scans and **permanently purges/deletes all image files and sensitive session traces after 5 hours 1 minute (18,060 seconds) maximum**. No photo or image remains stored beyond this 5-hour cutoff.
+- **Non-Biometric Recognition:** Images are analyzed exclusively for surface skin texture, pigmentation, and lesion detection. No biometric facial recognition templates, facial vector maps, or identity tracking algorithms are created or stored for any person.
+- **Immediate Disposal:** Upon generation of the diagnostic report, RAM memory buffers containing raw facial image data are immediately purged and overwritten.
+
+### 2.3 Information We Collect
+1. **Account Information:** Name, email address, and profile picture obtained via Google OAuth or email sign-up.
+2. **Self-Reported Skin Questionnaire Data:** Answers submitted regarding skin feel, concern areas, age group, and current routine.
+3. **Diagnostic Output Data:** Generated skin condition scores, recommended routines, and saved chat logs associated with your user ID.
+4. **Technical Data:** Anonymized browser type, IP address, device operating system, and session timestamps used solely for platform security and rate limiting.
+
+### 2.4 How Data Is Used & Processed
+- To generate accurate AI skin assessment reports and customized routines.
+- To maintain your personal diagnostic history within your private account.
+- To prevent abuse, enforce the 30-scan free tier limit, and provide premium features.
+- **Strict Prohibition:** We **NEVER sell, rent, monetize, or share** your personal data, diagnostic history, or contact details with third-party advertisers, data brokers, or pharmaceutical marketers.
+
+### 2.5 Security & Encryption Standards
+- **In-Transit Protection:** All communication between your client device, our servers, and the Google Gemini API uses 256-bit SSL/TLS HTTPS encryption.
+- **At-Rest Protection:** User database entries and authentication keys are protected using salted cryptographic hashes (`Werkzeug PBKDF2-SHA256`).
+- **Access Control:** Database access is restricted to authorized server processes managed by Sanjay GL.
+
+---
+
+## SECTION 3: APPLICATION SECURITY, PROTECTION & ANTI-DOWNLOAD POLICY
+
+**Notice of Proprietary Protection & Strict Anti-Download Enforcement**  
+**Authored by Sanjay GL · Date of Protection: August 18, 2026**
+
+### 3.1 Protection of Intellectual Property & Source Code
+The DermAI application, including but not limited to its source code (`app.py`, `database.py`, `skin_data.py`), user interface components (`templates/`, `static/`), stylesheets (`style.css`), branding elements, gold Sanjay GL logo emblem, database schemas, and AI prompt engineering constructs, are the exclusive intellectual property of **Sanjay GL**.
+
+### 3.2 Strict Anti-Download & Anti-Access Restrictions
+1. **Prohibition of Unauthorized Downloads:** Users, web crawlers, bots, and automated systems are strictly forbidden from downloading, scraping, cloning, or saving application codebase files, API endpoints, backend logic, or proprietary stylesheets.
+2. **Prohibition of Copying & Mirroring:** No portion of the privacy policy, application knowledge documentation, UI layout, or graphics may be copied, reproduced, mirrored, or republished without written authorization from Sanjay GL.
+3. **Prohibition of Reverse Engineering:** Decompilation, disassembling, reverse-engineering, inspect element extraction, or automated extraction of backend prompts and neural parameters is expressly prohibited.
+4. **Client-Side Content Protections:** The application enforces technical controls, including disabling context menus (right-click), text selection copying, image drag-and-drop, and developer inspection hotkeys (F12, Ctrl+U, Ctrl+S, Ctrl+Shift+I, Ctrl+Shift+J) on sensitive pages and policy specifications.
+
+### 3.3 Enforcement & Remedies
+Any attempt to bypass security protections, execute unauthorized downloads, intercept server communications, or scrape application assets will result in immediate termination of account access, IP blacklisting, and potential legal remedies under applicable Computer Misuse and Copyright Laws.
+
+---
+
+## SECTION 4: SECURITY UPDATES & MAINTENANCE POLICY
+
+### 4.1 Security Update Protocol
+- **Version Release Cycle:** Security updates, vulnerability patches, and dependency reviews are conducted regularly under the oversight of Sanjay GL.
+- **Emergency Patching:** Critical security vulnerabilities are addressed immediately upon discovery, with automated deployment of updated code.
+- **User Notification:** Material changes to privacy practices or security protocols will be updated on this page with an updated modification timestamp.
+
+### 4.2 Security Contact & Reporting
+If you discover a potential security vulnerability or have questions regarding data privacy and protection, please contact the developer:
+
+- **Developer & Owner:** Sanjay GL
+- **Application:** DermAI Skincare Diagnosis
+- **Official Policy Creation Date:** August 18, 2026
+- **Motto:** *Education: The Passport to Your Future*
+
+---
+
+*© 2026 Sanjay GL. DermAI – All Rights Reserved. Protected under Digital Personal Data Protection Act 2023.*

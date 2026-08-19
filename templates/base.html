@@ -50,9 +50,13 @@
 <body>
 <nav class="navbar">
   <div class="nav-container">
-    <a href="/" class="nav-logo"><span class="logo-icon">✦</span>Derm<span class="logo-accent">AI</span></a>
+    <a href="/" class="nav-logo">
+      <img src="/static/images/sanjay_logo.png" alt="Sanjay GL Logo" class="sanjay-nav-logo">
+      <span>Derm<span class="logo-accent">AI</span></span>
+    </a>
     <div class="nav-links">
       <a href="/analyze" class="nav-link">Analyze</a>
+      <a href="/privacy" class="nav-link">Privacy & Security</a>
       {% if user %}
         <a href="/profile" class="nav-link">My Profile</a>
         <div class="nav-user">
@@ -67,6 +71,7 @@
     <button class="hamburger" onclick="this.nextElementSibling.classList.toggle('open')">☰</button>
     <div class="mobile-menu">
       <a href="/analyze">Analyze</a>
+      <a href="/privacy">Privacy & Security</a>
       {% if user %}<a href="/profile">Profile</a><a href="/logout">Logout</a>
       {% else %}<a href="/login">Sign In</a>{% endif %}
     </div>
@@ -78,19 +83,40 @@
 <footer class="footer">
   <div class="footer-inner">
     <div>
-      <div class="footer-logo"><span class="logo-icon">✦</span>Derm<span class="logo-accent">AI</span></div>
-      <p>AI-powered skincare diagnosis for healthier, happier skin.</p>
+      <div class="footer-logo">
+        <img src="/static/images/sanjay_logo.png" alt="Sanjay GL Logo" class="sanjay-footer-logo">
+        <span>Derm<span class="logo-accent">AI</span></span>
+      </div>
+      <p>AI-powered skincare diagnosis by <strong>Sanjay GL</strong>. <em>Education: The Passport to Your Future</em>.</p>
     </div>
     <div class="footer-links">
       <div><h4>Product</h4><a href="/analyze">Analyze</a><a href="/profile">Dashboard</a></div>
-      <div><h4>Legal</h4><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Disclaimer</a></div>
+      <div><h4>Legal & Security</h4><a href="/privacy">Privacy Policy</a><a href="/privacy#security">Terms of Protection</a><a href="/privacy#app-knowledge">App Knowledge</a></div>
     </div>
   </div>
   <div class="footer-bottom">
     <p>⚕️ <strong>Medical Disclaimer:</strong> DermAI is for informational purposes only. Always consult a licensed dermatologist for medical diagnosis and treatment.</p>
-    <p>© 2024 DermAI · Protected under India's Digital Personal Data Protection Act 2023 · End-to-End Encrypted</p>
+    <p>© 2026 DermAI · Authored by <strong>Sanjay GL</strong> (Created 18 August 2026) · Anti-Download & Data Protected under India's Digital Personal Data Protection Act 2023</p>
   </div>
 </footer>
+<div id="globalSecurityToast" class="security-toast">
+  <span>🔒 Copying & Downloading Restricted by Sanjay GL Security Policy (18 Aug 2026)</span>
+</div>
+
+<script>
+// Global Client Protection Script
+document.addEventListener('contextmenu', function(e) {
+  if (e.target.tagName === 'IMG' || e.target.closest('.unselectable') || e.target.closest('.footer') || e.target.closest('.navbar') || e.target.closest('.privacy-wrapper')) {
+    e.preventDefault();
+    const toast = document.getElementById('globalSecurityToast');
+    if (toast) {
+      toast.classList.add('show');
+      setTimeout(() => { toast.classList.remove('show'); }, 3000);
+    }
+  }
+});
+</script>
 {% block scripts %}{% endblock %}
 </body>
 </html>
+

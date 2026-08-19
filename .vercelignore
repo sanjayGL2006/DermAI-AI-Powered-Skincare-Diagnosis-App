@@ -1,0 +1,17 @@
+venv/
+__pycache__/
+*.pyc
+.git/
+.env
+data/
+*.png
+*.jpg
+Dockerfile
+docker-compose.yml
+nginx.conf
+Procfile
+test_*.py
+scratchpad_*.md
+walkthrough*
+implementation_plan*
+9

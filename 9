@@ -1,0 +1,65 @@
+# Walkthrough - Window Controls Fix, Battery Percentage Fix & Chrome Integration
+
+We have completed the implementation and verification for Part A (Window Controls Fix), Part B (Battery Percentage Fix), and Part C (Chrome & Web Search Integration) across Peacock OS.
+
+---
+
+## Changes Implemented
+
+### Part A: Window Controls Fix (Minimize & Close)
+- **Preload Bridge**: Updated [`preload.js`](file:///d:/door-os/desktop-shell/preload.js) to expose `windowAPI`:
+  - `windowAPI.minimize()` -> `ipcRenderer.send('window:minimize')`
+  - `windowAPI.close()` -> `ipcRenderer.send('window:close')`
+- **Main Process Handlers**: Added dynamic window resolution in [`main.js`](file:///d:/door-os/desktop-shell/main.js):
+  - Used `BrowserWindow.fromWebContents(event.sender)` to scope `window:minimize` and `window:close` accurately to the calling window instead of hardcoding global references.
+- **Shared Window Controls Helper**: Created [`window-controls.js`](file:///d:/door-os/desktop-shell/window-controls.js) to auto-attach event listeners on `#btn-minimize` and `#btn-close` (or `#win-close-btn`).
+- **Unified CSS Titlebar**: Added `#window-titlebar` drag region styling to [`styles.css`](file:///d:/door-os/desktop-shell/styles.css).
+- **All App Windows Updated**: Integrated `#window-titlebar` (`#btn-minimize` ─ and `#btn-close` ✕) across all HTML app windows:
+  - File Explorer ([`explorer.html`](file:///d:/door-os/desktop-shell/explorer.html))
+  - Calculator ([`calculator.html`](file:///d:/door-os/desktop-shell/calculator.html))
+  - Control Panel ([`control-panel.html`](file:///d:/door-os/desktop-shell/control-panel.html))
+  - Settings ([`settings.html`](file:///d:/door-os/desktop-shell/settings.html))
+  - Terminal ([`terminal.html`](file:///d:/door-os/desktop-shell/terminal.html))
+  - Peacock IDE ([`door-ide.html`](file:///d:/door-os/desktop-shell/door-ide.html))
+  - Camera ([`camera.html`](file:///d:/door-os/desktop-shell/camera.html))
+  - PBLVSS Editor ([`pblvss-editor.html`](file:///d:/door-os/desktop-shell/pblvss-editor.html))
+  - Skanda Suite (`skanda-word`, `skanda-ppt`, `skanda-excel`, `skanda-notepad`, `skanda-paint`, `skanda-screenshot`, `skanda-assistant`)
+  - Web Browser ([`browser.html`](file:///d:/door-os/desktop-shell/browser.html))
+  - All 11 Games (`arrow-puzzle`, `chess-arena`, `game-2048`, `jigsaw`, `match3`, `memory-match`, `minesweeper`, `snake`, `sudoku`, `tictactoe`, `word-search`)
+
+---
+
+### Part B: Fix Incorrect Battery Percentage
+- **Desktop System Detection & Integer Rounding**: Updated `show_battery()` in [`lexer.py`](file:///d:/door-os/python-services/lexer.py):
+  - Handles `psutil.sensors_battery() == None` by returning `is_desktop: True` and AC power status.
+  - Rounds floating-point battery percentages (`round(battery.percent)`).
+- **Periodic 30s Broadcast**: Added `fetchAndBroadcastBattery()` interval loop in [`main.js`](file:///d:/door-os/desktop-shell/main.js) to push battery updates every 30 seconds to all active `BrowserWindow` instances (`battery_update` event).
+- **Single Source Sync**: Updated Taskbar ([`renderer.js`](file:///d:/door-os/desktop-shell/renderer.js)), Settings ([`settings.js`](file:///d:/door-os/desktop-shell/settings.js)), and Control Panel ([`control-panel.js`](file:///d:/door-os/desktop-shell/control-panel.js)) to listen to the unified broadcast and display in-sync battery state.
+
+---
+
+### Part C: Install / Integrate Chrome & Web Search
+- **Chrome Detection**: Implemented `findChromePath()` in [`main.js`](file:///d:/door-os/desktop-shell/main.js) checking standard Windows (`C:\Program Files\Google\Chrome\Application\chrome.exe`), macOS, and Linux installation paths.
+- **Web Search API**: Added `browser:checkChrome`, `browser:openExternal`, and `browser:searchWeb` IPC handlers in [`main.js`](file:///d:/door-os/desktop-shell/main.js).
+- **Taskbar Search Button & Modal**:
+  - Added 🔍 Search button to taskbar in [`index.html`](file:///d:/door-os/desktop-shell/index.html).
+  - Added web search popup modal with query input and Chrome installation status alert prompt.
+  - If Chrome is not installed, displays prompt with link to Google Chrome download (`https://www.google.com/chrome/`) while gracefully searching via system default browser.
+
+---
+
+## Verification Results
+
+1. **Python Lexer Execution**:
+   - `show_battery()` returned valid JSON output:
+     `{'status': 'ok', 'action': 'show_battery', 'type': 'battery_update', 'percent': 42, 'power_plugged': False, 'is_desktop': False, 'message': '42%'}`
+2. **Electron Environment**:
+   - Verified Electron v31.7.7 runtime and HTML titlebar scripts.
+
+---
+
+## Part D: Skanda Agent Custom OS Integration (Track A Alpine Linux)
+
+- **Selection**: Track A (Linux-based Custom Operating System), Alpine Linux base (x86_64), Regular Installed Application launcher.
+- **Specification Document**: Created [`OS_INTEGRATION.md`](file:///d:/door-os/OS_INTEGRATION.md) detailing kernel flags (`CONFIG_NAMESPACES`, `CONFIG_SECCOMP`, `CONFIG_USER_NS`, `CONFIG_DRM`), persistent directory storage layout (`/var/lib/skanda/`), `gcompat` glibc compatibility layer for Alpine musl, and isolation matrix between application code and host OS scripts.
+- **System Core Artifacts**: Created systemd service unit [`skanda-backend.service`](file:///d:/door-os/system-core/skanda-backend.service), desktop entry [`skanda-desktop.desktop`](file:///d:/door-os/system-core/skanda-desktop.desktop), and startup/launcher script [`skanda-init.sh`](file:///d:/door-os/system-core/skanda-init.sh) inside [`system-core/`](file:///d:/door-os/system-core).

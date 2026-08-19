@@ -2,18 +2,43 @@ import os
 import sqlite3
 from flask import g, has_app_context
 
-DATABASE = 'data/skincare.db'
+def get_db_path():
+    if os.environ.get('DATABASE_PATH'):
+        return os.environ['DATABASE_PATH']
+    if os.environ.get('VERCEL'):
+        return '/tmp/skincare.db'
+    return 'data/skincare.db'
+
+DATABASE = get_db_path()
+
+def _ensure_tables(db):
+    try:
+        tables = db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='users'").fetchone()
+        if not tables:
+            init_db_schema(db)
+    except Exception as e:
+        print(f"[DB Schema Check] {e}")
 
 def get_db():
-    os.makedirs(os.path.dirname(DATABASE), exist_ok=True)
+    db_path = get_db_path()
+    db_dir = os.path.dirname(db_path)
+    if db_dir:
+        try:
+            os.makedirs(db_dir, exist_ok=True)
+        except OSError:
+            db_path = '/tmp/skincare.db'
+            os.makedirs('/tmp', exist_ok=True)
+
     if has_app_context():
         if 'db' not in g:
-            g.db = sqlite3.connect(DATABASE)
+            g.db = sqlite3.connect(db_path)
             g.db.row_factory = sqlite3.Row
+            _ensure_tables(g.db)
         return g.db
     else:
-        db = sqlite3.connect(DATABASE)
+        db = sqlite3.connect(db_path)
         db.row_factory = sqlite3.Row
+        _ensure_tables(db)
         return db
 
 def close_db(e=None):
@@ -22,9 +47,7 @@ def close_db(e=None):
         if db is not None:
             db.close()
 
-def init_db():
-    db = get_db()
-    # Migration queries to support local authentication on existing databases
+def init_db_schema(db):
     try:
         db.execute("ALTER TABLE users ADD COLUMN username TEXT")
     except sqlite3.OperationalError:
@@ -33,7 +56,7 @@ def init_db():
         db.execute("ALTER TABLE users ADD COLUMN password_hash TEXT")
     except sqlite3.OperationalError:
         pass
-    
+
     db.executescript('''
         CREATE TABLE IF NOT EXISTS users (
             id TEXT PRIMARY KEY,
@@ -73,7 +96,12 @@ def init_db():
         );
     ''')
     db.commit()
+
+def init_db():
+    db = get_db()
+    init_db_schema(db)
     if not has_app_context():
         db.close()
     print("Database initialized successfully.")
+
 

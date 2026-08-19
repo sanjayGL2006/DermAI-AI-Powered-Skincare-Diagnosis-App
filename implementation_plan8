@@ -1,0 +1,112 @@
+# Implementation Plan - Peacock OS Window Controls, Battery Fix & Chrome Integration
+
+Fix window minimize/close controls across all windows, resolve battery percentage rounding/desktop detection/periodical sync issues, and integrate Google Chrome search functionality into the Peacock OS taskbar.
+
+## User Review Required
+
+> [!IMPORTANT]
+> - **Window Titlebars**: All frameless windows in Peacock OS will now render a unified draggable `#window-titlebar` with standard minimize (`─`) and close (`✕`) buttons wired to IPC window controls.
+> - **Battery Broadcasting**: All system components (Taskbar, Control Panel, Settings) will subscribe to a single 30-second periodic IPC broadcast from `lexer.py` to prevent battery percentage drift across app windows.
+> - **Chrome & Search Integration**: A 🔍 Search button will be added to the taskbar. Web searches use `shell.openExternal`. If Chrome is not found at standard installation paths, an alert prompt will inform the user with a download link while safely using the system default browser.
+
+## Proposed Changes
+
+---
+
+### Part A: Window Controls Fix (`windowAPI` & Titlebars)
+
+#### [MODIFY] [preload.js](file:///d:/door-os/desktop-shell/preload.js)
+- Expose `windowAPI`:
+  ```javascript
+  contextBridge.exposeInMainWorld('windowAPI', {
+    minimize: () => ipcRenderer.send('window:minimize'),
+    close: () => ipcRenderer.send('window:close')
+  });
+  ```
+
+#### [MODIFY] [main.js](file:///d:/door-os/desktop-shell/main.js)
+- Add window control IPC listeners scoped dynamically to the calling sender window:
+  ```javascript
+  ipcMain.on('window:minimize', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win) win.minimize();
+  });
+
+  ipcMain.on('window:close', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win) win.close();
+  });
+  ```
+
+#### [NEW] [window-controls.js](file:///d:/door-os/desktop-shell/window-controls.js)
+- A shared lightweight helper script to auto-wire `#btn-minimize` and `#btn-close` to `window.windowAPI.minimize()` and `window.windowAPI.close()`.
+
+#### [MODIFY] [styles.css](file:///d:/door-os/desktop-shell/styles.css)
+- Add CSS rules for `#window-titlebar`, `.window-controls`, `-webkit-app-region: drag`, and `-webkit-app-region: no-drag` hover styles.
+
+#### [MODIFY] Application HTML Files
+Add standard `#window-titlebar` component and include script binding across all frameless app windows:
+- [index.html](file:///d:/door-os/desktop-shell/index.html)
+- [explorer.html](file:///d:/door-os/desktop-shell/explorer.html)
+- [calculator.html](file:///d:/door-os/desktop-shell/calculator.html)
+- [control-panel.html](file:///d:/door-os/desktop-shell/control-panel.html)
+- [settings.html](file:///d:/door-os/desktop-shell/settings.html)
+- [terminal.html](file:///d:/door-os/desktop-shell/terminal.html)
+- [door-ide.html](file:///d:/door-os/desktop-shell/door-ide.html)
+- [camera.html](file:///d:/door-os/desktop-shell/camera.html)
+- [pblvss-editor.html](file:///d:/door-os/desktop-shell/pblvss-editor.html)
+- [skanda-word.html](file:///d:/door-os/desktop-shell/skanda-word.html)
+- [skanda-ppt.html](file:///d:/door-os/desktop-shell/skanda-ppt.html)
+- [skanda-excel.html](file:///d:/door-os/desktop-shell/skanda-excel.html)
+- [skanda-notepad.html](file:///d:/door-os/desktop-shell/skanda-notepad.html)
+- [skanda-paint.html](file:///d:/door-os/desktop-shell/skanda-paint.html)
+- [skanda-screenshot.html](file:///d:/door-os/desktop-shell/skanda-screenshot.html)
+- [skanda-assistant.html](file:///d:/door-os/desktop-shell/skanda-assistant.html)
+- [browser.html](file:///d:/door-os/desktop-shell/browser.html)
+- Games (`arrow-puzzle.html`, `chess-arena.html`, `game-2048.html`, `jigsaw.html`, `match3.html`, `memory-match.html`, `minesweeper.html`, `snake.html`, `sudoku.html`, `tictactoe.html`, `word-search.html`)
+
+---
+
+### Part B: Battery Percentage & Periodic Broadcast Fix
+
+#### [MODIFY] [lexer.py](file:///d:/door-os/python-services/lexer.py)
+- Update `show_battery()` to handle `psutil.sensors_battery() == None` for desktop systems.
+- Use `round(battery.percent)` to eliminate raw floating-point numbers.
+- Provide structured output payload with integer percentage, charging state, and desktop detection status.
+
+#### [MODIFY] [main.js](file:///d:/door-os/desktop-shell/main.js)
+- Implement periodic 30-second battery checking & broadcast (`battery_update` event) to all active windows (`BrowserWindow.getAllWindows()`).
+
+#### [MODIFY] [renderer.js](file:///d:/door-os/desktop-shell/renderer.js), [settings.js](file:///d:/door-os/desktop-shell/settings.js), [control-panel.js](file:///d:/door-os/desktop-shell/control-panel.js)
+- Update listeners to react to `type: "battery_update"` / `action: "show_battery"` to keep Taskbar, Settings, and Control Panel completely in sync.
+
+---
+
+### Part C: Chrome Integration & Web Search
+
+#### [MODIFY] [main.js](file:///d:/door-os/desktop-shell/main.js)
+- Add `findChromePath()` to detect Google Chrome on Windows (`C:\Program Files\Google\Chrome\Application\chrome.exe` & `C:\Program Files (x86)\...`), macOS, and Linux.
+- Add IPC handlers `browser:checkChrome` and `browser:openExternal`.
+
+#### [MODIFY] [preload.js](file:///d:/door-os/desktop-shell/preload.js)
+- Update `browserAPI` with `checkChrome()` and `openExternal()` bridge functions.
+
+#### [MODIFY] [index.html](file:///d:/door-os/desktop-shell/index.html) & [renderer.js](file:///d:/door-os/desktop-shell/renderer.js)
+- Add 🔍 Search button to taskbar.
+- Add inline search popup allowing users to enter a web search query.
+- If Chrome is missing, present a user prompt with option to download Chrome or proceed with system default browser.
+
+---
+
+## Verification Plan
+
+### Automated / Syntax Tests
+- Run Python syntax checks on `python-services/lexer.py`.
+- Run Node check / Electron dry run on `desktop-shell`.
+
+### Manual Verification
+- Test Minimize and Close buttons on Desktop Shell, File Explorer, Calculator, Settings, and Game windows.
+- Verify clicking Minimize minimizes only the calling window.
+- Verify clicking Close closes only the calling window (and not all open windows).
+- Test battery status reporting on desktop/laptop environments and verify rounding and periodic 30s taskbar sync.
+- Test 🔍 Search button: query Google Search via system default browser and verify Chrome detection banner logic.

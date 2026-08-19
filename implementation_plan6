@@ -1,0 +1,48 @@
+# Integrate Firebase Admin Python SDK
+
+Add Firebase Admin SDK initialization in `app.py` for backend Firebase capabilities (`firebase-adminsdk-fbsvc@dermai-skincare-app.iam.gserviceaccount.com`).
+
+## User Review Required
+
+> [!IMPORTANT]
+> The Firebase Admin SDK requires service account credentials. The application will check for `serviceAccountKey.json` (or the path set in the `FIREBASE_SERVICE_ACCOUNT_KEY` environment variable). For security, `serviceAccountKey.json` will be added to `.gitignore`.
+
+## Proposed Changes
+
+### Backend Logic
+
+#### [MODIFY] [app.py](file:///c:/Users/Sanjay%20G%20L/Desktop/skincare-app/app.py)
+- Import `firebase_admin` and `credentials` from `firebase_admin`.
+- Add environment variable lookup `FIREBASE_SERVICE_ACCOUNT_KEY` (default `serviceAccountKey.json`).
+- Safely initialize Firebase Admin SDK if key file exists.
+
+#### [MODIFY] [requirements.txt](file:///c:/Users/Sanjay%20G%20L/Desktop/skincare-app/requirements.txt)
+- Add `firebase-admin>=6.2.0` dependency.
+
+---
+
+### Configuration & Security
+
+#### [NEW] [serviceAccountKey.json.example](file:///c:/Users/Sanjay%20G%20L/Desktop/skincare-app/serviceAccountKey.json.example)
+- Create example template file for Firebase Admin service account key for project `dermai-skincare-app`.
+
+#### [MODIFY] [.env.example](file:///c:/Users/Sanjay%20G%20L/Desktop/skincare-app/.env.example)
+- Add `FIREBASE_SERVICE_ACCOUNT_KEY=serviceAccountKey.json`.
+
+#### [MODIFY] [.gitignore](file:///c:/Users/Sanjay%20G%20L/Desktop/skincare-app/.gitignore)
+- Add `serviceAccountKey.json` and `*serviceAccount*.json` to ignore rules.
+
+---
+
+### Documentation
+
+#### [MODIFY] [README.md](file:///c:/Users/Sanjay%20G%20L/Desktop/skincare-app/README.md)
+- Update setup instructions for Firebase Admin SDK configuration.
+
+## Verification Plan
+
+### Automated Tests
+- Syntax check `app.py` with `python -m py_compile app.py`.
+
+### Manual Verification
+- Test initialization logic when `serviceAccountKey.json` is present or absent (graceful fallback).
