@@ -342,17 +342,25 @@ def logout():
 
 @app.route('/auth/guest')
 def guest_login():
-    uid = gen_user_id()
-    db  = get_db()
-    guest_username = f"guest_{uid.split('-')[-1].lower()}"
-    db.execute(
-        'INSERT INTO users (id, username, name, email, created_at, analysis_count) VALUES (?, ?, ?, NULL, ?, 0)',
-        (uid, guest_username, 'Guest', datetime.now().isoformat())
-    )
-    db.commit()
-    session['user_id']   = uid
-    session['user_name'] = 'Guest'
-    return redirect(url_for('analyze'))
+    try:
+        uid = gen_user_id()
+        db  = get_db()
+        guest_username = f"guest_{uid.split('-')[-1].lower()}"
+        db.execute(
+            'INSERT INTO users (id, username, name, email, created_at, analysis_count) VALUES (?, ?, ?, NULL, ?, 0)',
+            (uid, guest_username, 'Guest', datetime.now().isoformat())
+        )
+        db.commit()
+        session['user_id']   = uid
+        session['user_name'] = 'Guest'
+        return redirect(url_for('analyze'))
+    except Exception as e:
+        print(f"[Guest Auth Warning] {e}")
+        if 'uid' not in locals():
+            uid = gen_user_id()
+        session['user_id']   = uid
+        session['user_name'] = 'Guest'
+        return redirect(url_for('analyze'))
 
 
 # ────────────────────────────────────────────────────────────
@@ -369,17 +377,27 @@ def favicon():
 
 @app.route('/')
 def index():
-    user = current_user()
-    return render_template('index.html', user=user)
+    try:
+        user = current_user()
+        return render_template('index.html', user=user)
+    except Exception as e:
+        print(f"[Index Route Error] {e}")
+        return render_template('index.html', user=None)
 
 @app.route('/analyze')
 @login_required
 def analyze():
-    uid = session['user_id']
-    ok, count, premium = can_analyze(uid)
-    return render_template('analyze.html',
-        user_id=uid, can_analyze=ok,
-        count_used=count, free_limit=FREE_LIMIT, is_premium=premium)
+    try:
+        uid = session['user_id']
+        ok, count, premium = can_analyze(uid)
+        return render_template('analyze.html',
+            user_id=uid, can_analyze=ok,
+            count_used=count, free_limit=FREE_LIMIT, is_premium=premium)
+    except Exception as e:
+        print(f"[Analyze Route Error] {e}")
+        return render_template('analyze.html',
+            user_id=session.get('user_id', 'SKN-GUEST'), can_analyze=True,
+            count_used=0, free_limit=FREE_LIMIT, is_premium=False)
 
 @app.route('/api/analyze', methods=['POST'])
 @login_required
