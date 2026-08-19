@@ -3,14 +3,13 @@ __pycache__/
 *.pyc
 .git/
 .env
-data/
-*.png
-*.jpg
+data/*.db
 Dockerfile
 docker-compose.yml
 nginx.conf
 Procfile
 test_*.py
+test_face.png
 scratchpad_*.md
 walkthrough*
 implementation_plan*
