@@ -5,58 +5,27 @@ from flask import g, has_app_context
 def get_db_path():
     if os.environ.get('DATABASE_PATH'):
         return os.environ['DATABASE_PATH']
-    if os.environ.get('VERCEL'):
+    if os.environ.get('VERCEL') or os.environ.get('AWS_LAMBDA_FUNCTION_NAME'):
         return '/tmp/skincare.db'
     return 'data/skincare.db'
 
-DATABASE = get_db_path()
-
-def _ensure_tables(db):
+def _connect_db():
+    path = get_db_path()
     try:
-        tables = db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='users'").fetchone()
-        if not tables:
-            init_db_schema(db)
-    except Exception as e:
-        print(f"[DB Schema Check] {e}")
-
-def get_db():
-    db_path = get_db_path()
-    db_dir = os.path.dirname(db_path)
-    if db_dir:
-        try:
+        db_dir = os.path.dirname(path)
+        if db_dir:
             os.makedirs(db_dir, exist_ok=True)
-        except OSError:
-            db_path = '/tmp/skincare.db'
-            os.makedirs('/tmp', exist_ok=True)
-
-    if has_app_context():
-        if 'db' not in g:
-            g.db = sqlite3.connect(db_path)
-            g.db.row_factory = sqlite3.Row
-            _ensure_tables(g.db)
-        return g.db
-    else:
-        db = sqlite3.connect(db_path)
-        db.row_factory = sqlite3.Row
-        _ensure_tables(db)
-        return db
-
-def close_db(e=None):
-    if has_app_context():
-        db = g.pop('db', None)
-        if db is not None:
-            db.close()
+        conn = sqlite3.connect(path)
+    except Exception as e:
+        print(f"[DB Warning] Could not open database at '{path}': {e}. Falling back to '/tmp/skincare.db'")
+        path = '/tmp/skincare.db'
+        os.makedirs('/tmp', exist_ok=True)
+        conn = sqlite3.connect(path)
+    
+    conn.row_factory = sqlite3.Row
+    return conn
 
 def init_db_schema(db):
-    try:
-        db.execute("ALTER TABLE users ADD COLUMN username TEXT")
-    except sqlite3.OperationalError:
-        pass
-    try:
-        db.execute("ALTER TABLE users ADD COLUMN password_hash TEXT")
-    except sqlite3.OperationalError:
-        pass
-
     db.executescript('''
         CREATE TABLE IF NOT EXISTS users (
             id TEXT PRIMARY KEY,
@@ -97,11 +66,48 @@ def init_db_schema(db):
     ''')
     db.commit()
 
+    try:
+        db.execute("ALTER TABLE users ADD COLUMN username TEXT")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        db.execute("ALTER TABLE users ADD COLUMN password_hash TEXT")
+    except sqlite3.OperationalError:
+        pass
+    db.commit()
+
+def _ensure_tables(db):
+    try:
+        tables = db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='users'").fetchone()
+        if not tables:
+            init_db_schema(db)
+    except Exception as e:
+        print(f"[DB Schema Check Error] {e}")
+        try:
+            init_db_schema(db)
+        except Exception as err2:
+            print(f"[DB Init Schema Error] {err2}")
+
+def get_db():
+    if has_app_context():
+        if 'db' not in g:
+            g.db = _connect_db()
+            _ensure_tables(g.db)
+        return g.db
+    else:
+        conn = _connect_db()
+        _ensure_tables(conn)
+        return conn
+
+def close_db(e=None):
+    if has_app_context():
+        db = g.pop('db', None)
+        if db is not None:
+            db.close()
+
 def init_db():
     db = get_db()
     init_db_schema(db)
     if not has_app_context():
         db.close()
     print("Database initialized successfully.")
-
-

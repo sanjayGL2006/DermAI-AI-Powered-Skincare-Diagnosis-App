@@ -18,7 +18,7 @@ load_dotenv()
 app = Flask(__name__)
 app.teardown_appcontext(close_db)
 
-app.secret_key = os.environ.get('FLASK_SECRET_KEY', os.urandom(24))
+app.secret_key = os.environ.get('FLASK_SECRET_KEY') or 'dermai-skincare-secret-key-2026-production'
 if not os.environ.get('VERCEL') and not os.environ.get('OAUTHLIB_INSECURE_TRANSPORT'):
     os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'   # dev only – remove in prod
 
@@ -230,24 +230,27 @@ def login():
     active_tab = request.args.get('active_tab', 'login')
     
     if request.method == 'POST':
-        username = request.form.get('username', '').strip()
-        password = request.form.get('password', '')
-        
-        if not username or not password:
-            flash('Please enter both username and password.', 'error')
-            return render_template('login.html', active_tab='login')
+        try:
+            username = request.form.get('username', '').strip()
+            password = request.form.get('password', '')
             
-        db = get_db()
-        # Find user by username or email
-        row = db.execute('SELECT * FROM users WHERE username=? OR email=?', (username, username)).fetchone()
-        
-        if row and row['password_hash'] and check_password_hash(row['password_hash'], password):
-            session['user_id'] = row['id']
-            session['user_name'] = row['name'] or row['username'] or 'User'
-            session['user_avatar'] = row['avatar'] or ''
-            return redirect(url_for('index'))
-        else:
-            flash('Invalid username or password.', 'error')
+            if not username or not password:
+                flash('Please enter both username and password.', 'error')
+                return render_template('login.html', active_tab='login')
+                
+            db = get_db()
+            row = db.execute('SELECT * FROM users WHERE username=? OR email=?', (username, username)).fetchone()
+            
+            if row and row['password_hash'] and check_password_hash(row['password_hash'], password):
+                session['user_id'] = row['id']
+                session['user_name'] = row['name'] or row['username'] or 'User'
+                session['user_avatar'] = row['avatar'] or ''
+                return redirect(url_for('index'))
+            else:
+                flash('Invalid username or password.', 'error')
+        except Exception as e:
+            print(f"[Login Error] {e}")
+            flash('Login error occurred. Please try again.', 'error')
             
     return render_template('login.html', active_tab=active_tab)
 
@@ -256,44 +259,49 @@ def register():
     if session.get('user_id'):
         return redirect(url_for('index'))
         
-    email = request.form.get('email', '').strip()
-    username = request.form.get('username', '').strip()
-    password = request.form.get('password', '')
-    confirm_password = request.form.get('confirm_password', '')
-    
-    if not email or not username or not password or not confirm_password:
-        flash('All fields are required.', 'error')
-        return redirect(url_for('login', active_tab='register'))
+    try:
+        email = request.form.get('email', '').strip()
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '')
+        confirm_password = request.form.get('confirm_password', '')
         
-    if password != confirm_password:
-        flash('Passwords do not match.', 'error')
-        return redirect(url_for('login', active_tab='register'))
+        if not email or not username or not password or not confirm_password:
+            flash('All fields are required.', 'error')
+            return redirect(url_for('login', active_tab='register'))
+            
+        if password != confirm_password:
+            flash('Passwords do not match.', 'error')
+            return redirect(url_for('login', active_tab='register'))
+            
+        db = get_db()
+        # Check if username exists
+        exists_user = db.execute('SELECT * FROM users WHERE username=?', (username,)).fetchone()
+        if exists_user:
+            flash('Username is already taken.', 'error')
+            return redirect(url_for('login', active_tab='register'))
+            
+        # Check if email exists
+        exists_email = db.execute('SELECT * FROM users WHERE email=?', (email,)).fetchone()
+        if exists_email:
+            flash('Email is already registered.', 'error')
+            return redirect(url_for('login', active_tab='register'))
+            
+        uid = gen_user_id()
+        pw_hash = generate_password_hash(password)
+        db.execute(
+            'INSERT INTO users (id, username, name, email, password_hash, created_at, analysis_count) VALUES (?, ?, ?, ?, ?, ?, 0)',
+            (uid, username, username, email, pw_hash, datetime.now().isoformat())
+        )
+        db.commit()
         
-    db = get_db()
-    # Check if username exists
-    exists_user = db.execute('SELECT * FROM users WHERE username=?', (username,)).fetchone()
-    if exists_user:
-        flash('Username is already taken.', 'error')
+        session['user_id'] = uid
+        session['user_name'] = username
+        session['user_avatar'] = ''
+        return redirect(url_for('index'))
+    except Exception as e:
+        print(f"[Register Error] {e}")
+        flash(f'Registration error: {str(e)}', 'error')
         return redirect(url_for('login', active_tab='register'))
-        
-    # Check if email exists
-    exists_email = db.execute('SELECT * FROM users WHERE email=?', (email,)).fetchone()
-    if exists_email:
-        flash('Email is already registered.', 'error')
-        return redirect(url_for('login', active_tab='register'))
-        
-    uid = gen_user_id()
-    pw_hash = generate_password_hash(password)
-    db.execute(
-        'INSERT INTO users (id, username, name, email, password_hash, created_at, analysis_count) VALUES (?, ?, ?, ?, ?, ?, 0)',
-        (uid, username, username, email, pw_hash, datetime.now().isoformat())
-    )
-    db.commit()
-    
-    session['user_id'] = uid
-    session['user_name'] = username
-    session['user_avatar'] = ''
-    return redirect(url_for('index'))
 
 @app.route('/auth/google/callback')
 def google_callback():
